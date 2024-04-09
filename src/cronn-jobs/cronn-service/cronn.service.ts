@@ -15,7 +15,7 @@ export class CronnService {
         private trelloResponsavel: TrelloResponsavelService,
         private setores: SetoresService,
         private boardService: TrelloQuadroService) { }
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_DAY_AT_8AM)
     /*
         valida todos os dias 8 am quais cartoes nao foram validados ainda e se estao dentro do 
         prazo de uma semana para validação
@@ -39,7 +39,7 @@ export class CronnService {
         })
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_8AM)
+    @Cron(CronExpression.EVERY_DAY_AT_7AM)
     /*
         valida toda meia noite quais cartoes esta com a data de validade perto do fim ou ja estao vencidos
     */
