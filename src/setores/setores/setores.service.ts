@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Setores } from '../entities/setores.entity';
 import { Repository } from 'typeorm';
+import { CreateSetorDto } from 'src/bot-trello/dto/createsetore.dto';
 
 @Injectable()
 export class SetoresService {
@@ -13,5 +14,10 @@ export class SetoresService {
         return await this.setores.find()
     }
 
+    async createSetor(setor: CreateSetorDto) {
+        return await this.setores.insert({
+            nome: setor.nome
+        })
+    }
 
 }

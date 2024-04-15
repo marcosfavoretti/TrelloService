@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateTrelloCartaoDto } from './dto/create-trello-cartao.dto';
 import { UpdateTrelloCartaoDto } from './dto/update-trello-cartao.dto';
 import { trelloClient } from 'src/bot-trello/Req.Client';
@@ -12,22 +12,46 @@ export class TrelloCartaoService {
   constructor(@InjectRepository(TrelloCartao) private trelloCard: Repository<TrelloCartao>) { }
 
   async getSomeCard(cardid: string): Promise<TrelloCard> {
-    const { data } = await trelloClient.get(`/cards/${cardid}?key=${process.env.api_key}&token=${process.env.api_token}`)
-    return data
+    try {
+      const { data } = await trelloClient.get(`/cards/${cardid}?key=${process.env.api_key}&token=${process.env.api_token}`)
+      return data
+
+    }
+    catch (err) {
+      throw new HttpException('nao foi possivel pegar o cartao', 500)
+    }
   }
 
   async getCardsOnBoard(idBoard: string): Promise<TrelloCard[]> {
-    const { data } = await trelloClient.get(`/boards/${idBoard}/cards?key=${process.env.api_key}&token=${process.env.api_token}`)
-    return data
+    try {
+      const { data } = await trelloClient.get(`/boards/${idBoard}/cards?key=${process.env.api_key}&token=${process.env.api_token}`)
+      return data
+
+    }
+    catch (err) {
+      throw new HttpException('nao foi possivel pegar os cartoes que o quadro tem', 500)
+    }
   }
 
   async cloneCard(idCard: string, idList: string): Promise<TrelloCard> {
-    const { data } = await trelloClient.post(`/cards?idList=${idList}&idCardSource=${idCard}&key=${process.env.api_key}&token=${process.env.api_token}`)
-    return data
+    try {
+      const { data } = await trelloClient.post(`/cards?idList=${idList}&idCardSource=${idCard}&key=${process.env.api_key}&token=${process.env.api_token}`)
+      return data
+
+    }
+    catch (err) {
+      throw new HttpException('nao foi possivel clonar o cartao para o quadro destino', 500)
+    }
   }
 
   async deleteCard(idCard: string) {
-    await trelloClient.delete(`/cards/${idCard}?key=${process.env.api_key}&token=${process.env.api_token}`)
+    try {
+
+      await trelloClient.delete(`/cards/${idCard}?key=${process.env.api_key}&token=${process.env.api_token}`)
+    }
+    catch (err) {
+      throw new HttpException('nao foi psosivel deletar o cartao', 500)
+    }
   }
   async updateCardDateOrigin({
     idTrelloCard,
@@ -41,8 +65,12 @@ export class TrelloCartaoService {
       .join('&');
 
     const url = `/cards/${idTrelloCard}?${queryString}&key=${process.env.api_key}&token=${process.env.api_token}`;
-
-    await trelloClient.put(url);
+    try {
+      await trelloClient.put(url);
+    }
+    catch (err) {
+      throw new HttpException('nao foi possivel alterar no quadro pai', 500)
+    }
   }
 
 

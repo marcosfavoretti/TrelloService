@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { trelloClient, defaultAuthBody } from 'src/bot-trello/Req.Client';
 import { Colors } from '../Objects/colors.enum';
 import { Label } from '../Objects/Label';
@@ -8,7 +8,13 @@ import { Setores } from 'src/setores/entities/setores.entity';
 export class LabelService {
 
     async createLabel({ name, color, idBoard }: { name: string, color: string, idBoard: string }) {
-        await trelloClient.post(`labels?name=${name}&color=${color}&idBoard=${idBoard}&key=${process.env.api_key}&token=${process.env.api_token}`)
+        try {
+            await trelloClient.post(`labels?name=${name}&color=${color}&idBoard=${idBoard}&key=${process.env.api_key}&token=${process.env.api_token}`)
+
+        }
+        catch (err) {
+            throw new HttpException('nao foi possivel criar a etiqueta', 500)
+        }
     }
 
     async checkLabels(idBoard: string, setores: Setores[]): Promise<Label[]> {

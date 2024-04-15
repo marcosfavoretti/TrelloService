@@ -34,7 +34,7 @@ export class CronnService {
             await this.email.sendEmail({
                 subject: `Cartão "${trello_card.name}" expirou o tempo de planejamento`,
                 html: getEmailContent([trello_card], responsaveis[0].idQuadro, `O tempo de validação do Cartão "${trello_card.name}" acabou, entre no trello e de um prazo para a ação ser realizada`),
-                reciver: responsaveis.map(person => person.email)//passar quem é reponsavel pelo quadro
+                reciver: [...responsaveis.map(person => person.email), 'marcos.junior@ethos.ind.br']//passar quem é reponsavel pelo quadro
             });
         })
     }
@@ -64,7 +64,7 @@ export class CronnService {
             await this.email.sendEmail({
                 subject: `Cartões vencidos ou perto do vencimento ${board.nome}`,
                 html: getEmailContent(tasks, board, `Os cartões : ${tasks.map(card => card.name).join(', ')} necessitam de uma resposta urgente`),
-                reciver: recivers.map(person => person.email)
+                reciver: [...recivers.map(person => person.email), 'marcos.junior@ethos.ind.br']
             })
 
         }

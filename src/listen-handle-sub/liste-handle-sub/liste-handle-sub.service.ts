@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { mapActionSub } from '../map.action.types.sub';
 import { WebHookDto } from 'src/bot-trello/dto/createcard.dto';
 import { TrelloCartaoService } from 'src/trello-cartao/trello-cartao.service';
@@ -59,7 +59,7 @@ export class ListeHandleSubService {
         await Promise.all(status)
     }
     private async completeInList(webhook: WebHookDto) {
-        const status = String(webhook.action.data.listAfter.name).toLowerCase() !== 'feito' ?
+        const status = String(webhook.action.data.listAfter.name).toLowerCase() !== 'feito' || String(webhook.action.data.listAfter.name).toLowerCase() !== 'concluído' ?
             [this.cartaoService.taskFinished(webhook.action.data.card.id, false),
             this.callBackToOrigin(webhook.action.data.card.id, { dueComplete: false })] :
             [this.cartaoService.taskFinished(webhook.action.data.card.id, true),
@@ -104,7 +104,8 @@ export class ListeHandleSubService {
             })
         }
         catch (err) {
-            // console.log("cartão sem dados no banco Main")
+            throw new HttpException('nao foi possivel dar o retorno pro cartao pai', 500)
+
         }
     }
 
@@ -121,7 +122,7 @@ export class ListeHandleSubService {
             })
         }
         catch (err) {
-            // console.log("cartão sem dados no banco Main")
+            throw new HttpException('nao foi possivel mover o cartao para lista de feitos', 500)
         }
     }
 

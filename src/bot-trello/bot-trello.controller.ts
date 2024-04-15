@@ -2,6 +2,7 @@ import { Body, Controller, Get, OnModuleInit, Post, Req, UseGuards } from '@nest
 import { BotTrelloService } from './bot-trello.service';
 import { Request } from 'express';
 import { WebHookDto } from './dto/createcard.dto';
+import { CreateBoardDto } from './dto/createboard.dto';
 
 @Controller('trello')
 export class BotTrelloController {
@@ -14,4 +15,8 @@ export class BotTrelloController {
     this.botTrelloService.processListen(data)
   }
 
+  @Post('/create-board')
+  async createBoard(@Body() createdto: CreateBoardDto) {
+    await this.botTrelloService.cadastraBoard(createdto)
+  }
 }

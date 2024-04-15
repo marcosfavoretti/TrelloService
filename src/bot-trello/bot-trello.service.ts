@@ -7,6 +7,8 @@ import { SetoresService } from 'src/setores/setores/setores.service';
 import { WebHookDto } from './dto/createcard.dto';
 import { ListenHandleAdmService } from 'src/listen-handle-adm/listen-handle-adm/listen-handle-adm.service';
 import { ListeHandleSubService } from 'src/listen-handle-sub/liste-handle-sub/liste-handle-sub.service';
+import { CreateBoardDto } from './dto/createboard.dto';
+import { getRandomValues } from 'crypto';
 @Injectable()
 export class BotTrelloService implements OnModuleInit {
     constructor(
@@ -18,6 +20,10 @@ export class BotTrelloService implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
+        await this.verfifyLabels()
+    }
+
+    async verfifyLabels() {
         const mainboards = await this.quardoService.getMainBoards()
         console.log(mainboards)
         const setores = await this.setoresService.getSetores()
@@ -31,11 +37,23 @@ export class BotTrelloService implements OnModuleInit {
         await this.checkAdmin(data.model) ? await this.listenAdm.actionManager(data) : await this.listenSub.actionManager(data)
     }
 
-    async checkAdmin(model: ModelDto) {
-        return await this.quardoService.mainBoard(model.id)
+    async cadastraBoard(createdto: CreateBoardDto) {
+        const { generatedMaps } = await this.setoresService.createSetor(createdto.setores)
+        const id_setor = generatedMaps[0].id
+        const process = [this.quardoService.createBoard(createdto, id_setor),
+        this.quardoService.createWebHook(createdto.idTrello),
+
+        ]
+        await Promise.all(process)
+        await this.verfifyLabels()
     }
 
-
-
-
+    async checkAdmin(model: ModelDto) {
+        try {
+            return await this.quardoService.mainBoard(model.id)
+        }
+        catch (err) {
+            console.log(err)
+        }
+    }
 }
