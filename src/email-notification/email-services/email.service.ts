@@ -13,7 +13,7 @@ export class EmailService {
         await this.axios_client.post('/email', {
             ...email
         }).then(() => {
-            // console.log('email enviado')
+            console.log('email enviado')
         }).catch(err =>
             console.log(err)
         )

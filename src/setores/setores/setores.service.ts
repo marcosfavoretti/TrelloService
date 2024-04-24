@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Setores } from '../entities/setores.entity';
 import { Repository } from 'typeorm';
-import { CreateSetorDto } from 'src/bot-trello/dto/createsetore.dto';
+import { CreateSetorDto } from 'src/bot-trello/dto/createsetor.dto';
 
 @Injectable()
 export class SetoresService {

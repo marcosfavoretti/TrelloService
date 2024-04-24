@@ -6,9 +6,10 @@ import { TrelloQuadroModule } from 'src/trello-quadro/trello-quadro.module';
 import { SetoresModule } from 'src/setores/setores.module';
 import { LabelModule } from 'src/label/label.module';
 import { EmailNotificationModule } from '../email-notification/email-notification.module';
+import { TrelloResponsavelModule } from 'src/trello-responsavel/trello-responsavel.module';
 
 @Module({
-    imports: [TrelloCartaoModule, TrelloListModule, TrelloQuadroModule, SetoresModule, LabelModule, EmailNotificationModule],
+    imports: [TrelloCartaoModule, TrelloResponsavelModule, TrelloListModule, TrelloQuadroModule, SetoresModule, LabelModule, EmailNotificationModule],
 
     providers: [ListeHandleSubService],
     exports: [ListeHandleSubService]

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { IWhActions } from 'src/Interfaces/IWhActions';
 import { WebHookDto } from 'src/bot-trello/dto/createcard.dto';
 import { mapActionType } from '../map.action.type';
@@ -15,8 +15,6 @@ export class ListenHandleAdmService implements IWhActions {
         private cartaoService: TrelloCartaoService,
         private quardoService: TrelloQuadroService,
         private listaService: TrelloListService,
-        private labelService: LabelService,
-        private setoresService: SetoresService,
     ) { }
 
     mapControll: { [key: string]: (webhookdto: WebHookDto) => Promise<void> } = {//cadastro qual e o nome da ação e qual a func que vai ser executada
@@ -30,24 +28,34 @@ export class ListenHandleAdmService implements IWhActions {
     }
 
     private async addLabelHandle(webhookdto: WebHookDto): Promise<void> {
-        const idCard = webhookdto.action.data.card.id
-        const setorStr = webhookdto.action.data.text
-        const setorBoard = await this.quardoService.getBoardbySetor(setorStr)
-        const idTodoList = await this.listaService.getListToDo(setorBoard.idTrello)
-        const cloneCard = await this.cartaoService.cloneCard(idCard, idTodoList.id)
-        await this.cartaoService.createCardonLocalDataBase(cloneCard.id, idCard)
+        try {
+            const idCard = webhookdto.action.data.card.id
+            const setorStr = webhookdto.action.data.text
+            const setorBoard = await this.quardoService.getBoardbySetor(setorStr)
+            const idTodoList = await this.listaService.getListToDo(setorBoard.idTrello)
+            const cloneCard = await this.cartaoService.cloneCard(idCard, idTodoList.id)
+            await this.cartaoService.createCardonLocalDataBase(cloneCard.id, idCard)
+        }
+        catch (err) {
+            return
+        }
     }
 
-
     private async removerLabel(webhookdto: WebHookDto): Promise<void> {
-        const setorStr = webhookdto.action.data.text
-        const destinyBoard = await this.quardoService.getBoardbySetor(setorStr)
-        const allCards = await this.cartaoService.getCardsOnBoard(destinyBoard.idTrello)
-        const deletedCard = allCards.filter(card => card.name === webhookdto.action.data.card.name)
-        deletedCard.forEach(async (card) => {
-            await this.cartaoService.deleteCard(card.id)
-            await this.cartaoService.deteleCardonLocalDataBase(card.id)
-        });
+        try {
+
+            const setorStr = webhookdto.action.data.text
+            const destinyBoard = await this.quardoService.getBoardbySetor(setorStr)
+            const allCards = await this.cartaoService.getCardsOnBoard(destinyBoard.idTrello)
+            const deletedCard = allCards.filter(card => card.name === webhookdto.action.data.card.name)
+            deletedCard.forEach(async (card) => {
+                await this.cartaoService.deleteCard(card.id)
+                await this.cartaoService.deteleCardonLocalDataBase(card.id)
+            });
+        }
+        catch (err) {
+            return
+        }
     }
 
 }

@@ -7,6 +7,9 @@ import { TrelloListService } from 'src/trello-list/trello-list-service/trello-li
 import { LabelService } from 'src/label/labelService/label.service';
 import { SetoresService } from 'src/setores/setores/setores.service';
 import { format } from "date-fns"
+import { EmailService } from 'src/email-notification/email-services/email.service';
+import { getEmailContent } from 'src/email-notification/emailgem/email.gem';
+import { TrelloResponsavelService } from 'src/trello-responsavel/trello-responsavel/trello-responsavel.service';
 
 @Injectable()
 export class ListeHandleSubService {
@@ -16,6 +19,8 @@ export class ListeHandleSubService {
         private listaService: TrelloListService,
         private labelService: LabelService,
         private setoresService: SetoresService,
+        private notify: EmailService,
+        private responsaveisService: TrelloResponsavelService
     ) { }
 
     mapControll: { [key: string]: (webhookdto: WebHookDto) => Promise<void> } = {//cadastro qual e o nome da ação e qual a func que vai ser executada
@@ -43,13 +48,21 @@ export class ListeHandleSubService {
 
     private async dueComplete(webhook: WebHookDto) {
         //logica para finalização do cartão
-
+        const card = await this.cartaoService.getSomeCard(webhook.action.data.card.id)
+        const responsaveis_board = await this.responsaveisService.getResponsaveis(webhook.model.id)
+        const responsaveis_admin = await this.responsaveisService.getResponsaveisAdmin()
+        console.log(responsaveis_admin)
         const status = webhook.action.data.card.dueComplete ? [
             this.cartaoService.taskFinished(webhook.action.data.card.id, true),
             this.callBackToOrigin(webhook.action.data.card.id, {
                 dueComplete: true,
             }),
-            this.moveCardToDoneList(webhook.action.data.card.id)
+            this.moveCardToDoneList(webhook.action.data.card.id),
+            this.notify.sendEmail({
+                html: getEmailContent([card], webhook.model.id, `O Projeto ${card.name} foi concluído com exito`),
+                reciver: [...responsaveis_board.map(resp => resp.email), ...responsaveis_admin.map(resp => resp.email)],
+                subject: `Projeto '${card.name}' Concluído `
+            })
         ] : [
             this.cartaoService.taskFinished(webhook.action.data.card.id, false),
             this.callBackToOrigin(webhook.action.data.card.id, {
@@ -58,17 +71,26 @@ export class ListeHandleSubService {
         ]
         await Promise.all(status)
     }
+
     private async completeInList(webhook: WebHookDto) {
-        const status = String(webhook.action.data.listAfter.name).toLowerCase() !== 'feito' || String(webhook.action.data.listAfter.name).toLowerCase() !== 'concluído' ?
-            [this.cartaoService.taskFinished(webhook.action.data.card.id, false),
-            this.callBackToOrigin(webhook.action.data.card.id, { dueComplete: false })] :
+        const card = await this.cartaoService.getSomeCard(webhook.action.data.card.id)
+        const responsaveis_board = await this.responsaveisService.getResponsaveis(webhook.model.id)
+        const responsaveis_admin = await this.responsaveisService.getResponsaveisAdmin()
+        const status = String(webhook.action.data.listAfter.name).toLowerCase() === 'feito' || String(webhook.action.data.listAfter.name).toLowerCase() === 'concluído' ?
             [this.cartaoService.taskFinished(webhook.action.data.card.id, true),
             this.callBackToOrigin(webhook.action.data.card.id,
                 {
                     dueComplete: true,
                 }),
-            this.moveCardToDoneList(webhook.action.data.card.id)
-            ]
+            this.moveCardToDoneList(webhook.action.data.card.id),
+            this.notify.sendEmail({
+                html: getEmailContent([card], webhook.model.id, `O Projeto ${card.name} foi concluído com exito`),
+                reciver: [...responsaveis_board.map(resp => resp.email), ...responsaveis_admin.map(resp => resp.email)],
+                subject: `Projeto '${card.name}' Concluído `
+            })
+            ] :
+            [this.cartaoService.taskFinished(webhook.action.data.card.id, false),
+            this.callBackToOrigin(webhook.action.data.card.id, { dueComplete: false })]
 
         await Promise.all(status)
     }
@@ -104,8 +126,7 @@ export class ListeHandleSubService {
             })
         }
         catch (err) {
-            throw new HttpException('nao foi possivel dar o retorno pro cartao pai', 500)
-
+            console.log('nao foi possivel dar retorno para o cartao pai')
         }
     }
 
@@ -138,8 +159,6 @@ export class ListeHandleSubService {
             callBack
         ])
     }
-
-
     private isFrstDate(webhook: WebHookDto): boolean {
         return !webhook.action.data.old.due ? true : false
     }

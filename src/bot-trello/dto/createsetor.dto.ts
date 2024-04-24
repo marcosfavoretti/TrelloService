@@ -1,6 +1,8 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 
 export class CreateSetorDto {
+    @ApiProperty()
     @IsString()
-    nome
+    nome: string
 }

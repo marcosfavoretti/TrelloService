@@ -21,7 +21,16 @@ export class TrelloCartaoService {
       throw new HttpException('nao foi possivel pegar o cartao', 500)
     }
   }
+  async getAllInformationsCards() {
+    const local_database = await this.trelloCard.find()
+    const promise = local_database
+      .map(card => this.getSomeCard(card.idTrello)
+        .then((data => card['t_info'] = data)))
+    await Promise.all(promise)
+    return local_database
+  }
 
+ 
   async getCardsOnBoard(idBoard: string): Promise<TrelloCard[]> {
     try {
       const { data } = await trelloClient.get(`/boards/${idBoard}/cards?key=${process.env.api_key}&token=${process.env.api_token}`)
@@ -35,6 +44,7 @@ export class TrelloCartaoService {
 
   async cloneCard(idCard: string, idList: string): Promise<TrelloCard> {
     try {
+      console.log('cloning card')
       const { data } = await trelloClient.post(`/cards?idList=${idList}&idCardSource=${idCard}&key=${process.env.api_key}&token=${process.env.api_token}`)
       return data
 
@@ -50,7 +60,7 @@ export class TrelloCartaoService {
       await trelloClient.delete(`/cards/${idCard}?key=${process.env.api_key}&token=${process.env.api_token}`)
     }
     catch (err) {
-      throw new HttpException('nao foi psosivel deletar o cartao', 500)
+      throw new HttpException('nao foi possivel deletar o cartao', 500)
     }
   }
   async updateCardDateOrigin({

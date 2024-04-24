@@ -4,13 +4,13 @@ import { TrelloResponsavel } from "src/trello-responsavel/entities/trello-respon
 
 const mailgen = require('mailgen')
 
-export function getEmailContent(trellocard: TrelloCard[], board: TrelloQuadro, msg: string) {
+export function getEmailContent(trellocard: TrelloCard[], idTrelloBoard: string, msg: string) {
 
     const mailgenerator = new mailgen({
         theme: "cerberus",
         product: {
             name: "TrelloService",
-            link: `https://trello.com/b/${board.idTrello}`,
+            link: `https://trello.com/b/${idTrelloBoard}`,
             copyright: 'Reports de cartões do Trello',
         }
     })
@@ -19,7 +19,7 @@ export function getEmailContent(trellocard: TrelloCard[], board: TrelloQuadro, m
         const data = () => {
             return trellocard.map(task => {
                 return {
-                    instructions: `•${task.name}`,
+                    instructions: `•\t${task.name}`,
                     button: {
                         color: "#2255bc",
                         text: "Visualizar Cartão",

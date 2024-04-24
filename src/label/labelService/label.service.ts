@@ -9,11 +9,12 @@ export class LabelService {
 
     async createLabel({ name, color, idBoard }: { name: string, color: string, idBoard: string }) {
         try {
-            await trelloClient.post(`labels?name=${name}&color=${color}&idBoard=${idBoard}&key=${process.env.api_key}&token=${process.env.api_token}`)
-
+            const url = `labels?name=${encodeURIComponent(name)}&color=${color}&idBoard=${idBoard}&key=${process.env.api_key}&token=${process.env.api_token}`
+            console.log(url)
+            await trelloClient.post(url)
         }
         catch (err) {
-            throw new HttpException('nao foi possivel criar a etiqueta', 500)
+            throw new HttpException(`nao foi possivel criar a etiqueta\n ${err}`, 500)
         }
     }
 
@@ -26,6 +27,7 @@ export class LabelService {
         missing.forEach(
             miss => {
                 const color = this.randomColor()
+                console.log(color)
                 this.createLabel({
                     color: color,
                     name: miss,
